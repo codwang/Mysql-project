@@ -1,0 +1,145 @@
+create table stu_test(
+     id int comment'编号',
+     name varchar(16) comment'学生姓名',
+     schoolname varchar(32) comment'学习名称',
+     profession varchar(32) comment'专业',
+     sex varchar(2) comment'性别',
+     calling bit comment'点名',
+     attend varchar(3) comment'考勤状态'
+     );
+
+
+--创建商店数据库
+drop database if exists shop; 
+create database if not exists shop character set utf8mb4;
+--创建商品表
+drop table if exists goods;
+create table goods(
+	goods_id varchar(16) comment'商品编号',
+	goods_name varchar(32) comment'商品名',
+	unitprice DECIMAL(3,1) comment'单价',     
+	category varchar(16) comment'商品类别',
+	provider varchar(32) comment'供应商'
+	);
+--创建客户表
+drop table if exists customer;
+create table customer(
+	customer_id varchar(16) comment'客户号',
+	name varchar(16) comment'姓名',
+	address varchar(32) comment'住址',
+	email varchar(16) comment'邮箱',
+	sex varchar(3) comment'性别',
+	card_id varchar(32) comment'身份证号'
+);
+--创建购买订单表：
+drop table if exists purchase;
+create table purchase(
+	order_id varchar(32) comment'订单号',
+	customer_id varchar(16) comment'客户号',
+	goods_id varchar(16) comment'商品编号',
+	nums int comment'购买数量'
+);
+-----------------------------------------------------
+------------------增删改查---------------------------
+---------新增操作---------
+--单行数据+全列插入--
+insert into goods(goods_id,goods_name,unitprice,category,provider)
+values('001','牛奶',2.5,'饮品','蒙牛');
+
+insert into goods(goods_id,goods_name,unitprice,category,provider)
+values('002','鸡蛋',1.5,'食品','养鸡场');
+
+--单行指定列插入--
+insert into goods(goods_id,goods_name,category,provider)
+values('003','面包','食品','面包制造厂');
+
+--多行数据+指定列--
+insert into customer(customer_id,name,address,sex)values
+	('001','张三','陕西省宝鸡市','男'),
+	('002','李四','陕西省安康市','女'),
+	('003','张三','陕西省宝鸡市','男'),
+	('004','李四','陕西省安康市','女'),
+	('005','王五','甘肃省兰州市','男');
+	
+insert into goods(goods_id,goods_name,unitprice,category,provider)values
+	('004','饼干',2.5,'食品','伊利'),
+	('005','口香糖',1.5,'糖类','蒙牛'),
+	('006','棒棒糖',5.6,'糖类','蒙牛'),
+	('007','炫迈',1.5,'糖类','伊利');
+	
+insert into purchase(order_id,customer_id,goods_id,nums)values
+	('002001','002','001',10),
+	('003003','003','003',5),
+	('001004','001','004',2),
+	('005002','005','002',4),
+	('00400','004','005',3);
+----------查询操作---------
+
+--查询全部--
+select * from customer;
+select * from goods;
+
+--查询指定列--
+select goods_name,unitprice from goods;
+
+--查询字段为表达式--
+--表达式不包含字段
+select customer_id,name,10 from customer;
+--表达式包含一个字段
+select customer_id,name,sex+10 from customer; 
+--表达式包含多个字段
+select customer_id,name,address+sex from customer;
+
+--为查询结果中的列指定别名
+select customer_id id,name username from customer;
+                    ^          ^  
+				   别名      别名     可以用中文
+				   
+select customer_id 编号,name 姓名 from customer;		
+
+--去重：关键字: distinct
+select distinct name,address from customer;
+select distinct goods_name,unitprice from goods;
+		   
+--排序：order by  默认为asc(升序)--
+--asc 升序
+--desc 降序  
+select goods_id,nums from purchase order by nums; 
+select goods_id,nums from purchase order by nums desc;
+--null 数据排序，视为比任何数据都小，升序在最上面，降序在最下面
+--使用表达式排序--
+select customer_id,goods_id+nums from purchase order by goods_id+nums;
+select customer_id,goods_id+order_id from purchase order by goods_id+order_id;
+select name,email+sex from customer order by email+sex;
+--使用别名排序--
+select customer_id id, name username from customer order by id;
+select customer_id id, name+address username from customer order by username;
+--对多个字段进行排序，排序优先级随书写顺序(按照第一个列名来排序)--
+select customer_id id,name,address,sex from customer order by id desc,name,address,sex desc;
+
+---------条件查询------------
+--1.where 条件可以使用表达式，但不能使用别名
+--2.and 的优先级高于 or ,在使用时，需要用小括号()包裹优先执行的部分
+
+-- in(option) 每一行的unitprice字段都要包含在(值1，值2)其中之一
+select goods_name,unitprice from goods where unitprice in(1.5,2.5);
+--等于 <=>
+select * from goods where category <=> '食品';
+select * from goods where goods_id <=> '001';
+--不等于 !=
+select * from goods where category != '食品';
+-- between a0 and a1 范围匹配
+select * from goods where goods_id between '001' and '003';
+--like 模糊匹配  %表示任意多个 _ 表示任意一个字符
+select * from goods where provider like '蒙%';
+select * from goods where provider like '蒙_';
+-- is null  is not null 
+select * from goods where unitprice is null;
+					||
+					||
+select * from goods where unitprice <=> null;
+
+--逻辑运算符 and or not
+select * from goods where goods_id between '002' and '009' and unitprice > 3;
+select * from goods where goods_id between '002' and '004' or unitprice > 3;
+
